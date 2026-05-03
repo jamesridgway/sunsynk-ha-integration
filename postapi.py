@@ -4,10 +4,8 @@ from src.clients.home_assistant_client import HomeAssistantClient
 def PostHAEntity(Serial,UOM,UOMLong,fName,sName,EntityVal):
     import json
     import requests
-    import urllib3
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)    
-    
-    class ConsoleColor:    
+
+    class ConsoleColor:
         OKBLUE = "\033[34m"
         OKCYAN = "\033[36m"
         OKGREEN = "\033[32m"        
@@ -73,10 +71,8 @@ def PostHAEntity(Serial,UOM,UOMLong,fName,sName,EntityVal):
 def ConnectionTest(Serial,UOM,UOMLong,fName,sName,EntityVal):
     import json
     import requests
-    import urllib3
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)    
-    
-    class ConsoleColor:    
+
+    class ConsoleColor:
         OKBLUE = "\033[34m"
         OKCYAN = "\033[36m"
         OKGREEN = "\033[32m"        

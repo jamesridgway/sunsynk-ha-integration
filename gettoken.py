@@ -15,6 +15,8 @@ def gettoken():
     from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
     from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
+    from src.configuration.configuration import Configuration
+
     BearerToken = ""
 
     class ConsoleColor:
@@ -27,8 +29,7 @@ def gettoken():
         ENDC = "\033[0m"
         BOLD = "\033[1m"
 
-    with open('/data/options.json') as options_file:
-       json_settings = json.load(options_file)
+    json_settings = Configuration()
 
     # Determine source based on API server
     source = "elinter" if json_settings["API_Server"] == "pv.inteless.com" else "sunsynk"

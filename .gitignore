@@ -1,0 +1,23 @@
+# Runtime secrets / config (HA writes the user's real credentials here)
+options.json
+
+# Generated runtime files
+svr_settings.json
+settings.json
+battery_settings.json
+merged_battery_settings.json
+merged_systemmode_settings.json
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+.DS_Store

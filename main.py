@@ -3,43 +3,61 @@ import getapi
 import postapi
 import settingsmanager
 import os
-import json
+import re
 import requests
 import threading
 import logging
-import traceback
+from logging.handlers import RotatingFileHandler
 from datetime import datetime
 
+from src.configuration.configuration import Configuration
+
 # Define console colors for readability
-class ConsoleColor:    
+class ConsoleColor:
     OKBLUE = "\033[34m"
     OKCYAN = "\033[36m"
-    OKGREEN = "\033[32m"        
+    OKGREEN = "\033[32m"
     MAGENTA = "\033[35m"
     WARNING = "\033[33m"
     FAIL = "\033[31m"
     ENDC = "\033[0m"
-    BOLD = "\033[1m"    
+    BOLD = "\033[1m"
 
-# Configure logging
-logging.basicConfig(filename="solar_script.log", level=logging.INFO, 
-                    format="%(asctime)s - %(levelname)s - %(message)s")
+# Configure logging — write to /data so the location is predictable, with rotation.
+LOG_PATH = "/data/solar_script.log"
+_handler = RotatingFileHandler(LOG_PATH, maxBytes=1_000_000, backupCount=3)
+_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+logging.basicConfig(level=logging.INFO, handlers=[_handler])
+try:
+    os.chmod(LOG_PATH, 0o600)
+except OSError:
+    pass
 
 # Get current date & time
 VarCurrentDate = datetime.now()
 
-# Load settings from JSON file
+# Load settings
 try:
-    with open('/data/options.json') as options_file:
-        json_settings = json.load(options_file)
-        api_server = json_settings['API_Server']
+    json_settings = Configuration()
+    api_server = json_settings['API_Server']
 except Exception as e:
-    logging.error(f"Failed to load settings: {e}")
+    logging.exception("Failed to load settings")
     print(ConsoleColor.FAIL + "Error loading settings.json. Ensure the file exists and is valid JSON." + ConsoleColor.ENDC)
     exit()
 
-# Retrieve inverter serials
-inverterserials = str(json_settings['sunsynk_serial']).split(";")
+# Retrieve inverter serials and validate format
+SERIAL_PATTERN = re.compile(r'^[A-Za-z0-9]+$')
+_raw_serials = str(json_settings['sunsynk_serial']).split(";")
+inverterserials = []
+for _s in _raw_serials:
+    _s = _s.strip()
+    if not _s:
+        continue
+    if not SERIAL_PATTERN.match(_s):
+        print(ConsoleColor.FAIL + f"Skipping invalid inverter serial: {_s!r} (must be alphanumeric)" + ConsoleColor.ENDC)
+        logging.warning("Skipping invalid inverter serial: %r", _s)
+        continue
+    inverterserials.append(_s)
 
 # Function to safely fetch data using threading
 
@@ -48,9 +66,8 @@ def fetch_data(api_function, BearerToken, serialitem, description):
         print(f"{ConsoleColor.WARNING}Fetching {description}...{ConsoleColor.ENDC}")
         api_function(BearerToken, str(serialitem))
     except Exception as e:
-        logging.error(f"Error fetching {description}: {e}")
+        logging.exception("Error fetching %s", description)
         print(ConsoleColor.FAIL + f"Error fetching {description}: {e}" + ConsoleColor.ENDC)
-        print(traceback.format_exc())
 
 
 
@@ -69,10 +86,9 @@ try:
     if not BearerToken:
         print("Failed to retrieve Bearer Token. Check credentials or server status.")
 except Exception as e:
-    logging.error(f"Token retrieval error: {e}")
+    logging.exception("Token retrieval error")
     print(ConsoleColor.FAIL + "Error retrieving Bearer Token." + ConsoleColor.ENDC)
-    print(traceback.format_exc())
-    exit() 
+    exit()
 
 # Iterate through all inverters (Only if bearer exist)
 if BearerToken:       

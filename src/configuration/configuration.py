@@ -34,3 +34,8 @@ class Configuration:
             return self.supervisor_token
         else:
             return self['HA_LongLiveToken']
+
+    def verify_https(self):
+        if self.get('use_internal_api', False) or not self.get('Enable_HTTPS', False):
+            return True
+        return self.get('Verify_HTTPS', True)

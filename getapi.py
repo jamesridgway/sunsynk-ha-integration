@@ -1,29 +1,21 @@
-import logging
-
 import postapi
 import json
 import requests
 from datetime import datetime
 
-class ConsoleColor:    
+from src.configuration.configuration import Configuration
+
+class ConsoleColor:
     OKBLUE = "\033[34m"
     OKCYAN = "\033[36m"
-    OKGREEN = "\033[32m"        
+    OKGREEN = "\033[32m"
     MAGENTA = "\033[35m"
     WARNING = "\033[33m"
     FAIL = "\033[31m"
     ENDC = "\033[0m"
-    BOLD = "\033[1m" 
+    BOLD = "\033[1m"
 
-# Load settings from JSON file
-try:
-    with open('/data/options.json') as options_file:
-        json_settings = json.load(options_file)
-        api_server = json_settings['API_Server']
-except Exception as e:
-    logging.error(f"Failed to load settings: {e}")
-    print(ConsoleColor.FAIL + "Error loading settings.json. Ensure the file exists and is valid JSON." + ConsoleColor.ENDC)
-    exit()
+api_server = Configuration()['API_Server']
     
 def GetInverterInfo(Token,Serial):    
     global api_server         
